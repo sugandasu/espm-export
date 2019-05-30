@@ -102,15 +102,18 @@ async def import_budget(conn, headers):
 
 async def import_budget_tw(conn, headers):
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_Rencana_Arsip]")
+    cursor.execute("SELECT TOP 41000 * FROM [Simda_2019].[dbo].[Ta_Rencana_Arsip]")
 
     url = "http://espm.test/api/import-app/budget-tw"
 
     fieldnames = [
-        "tahun", "kd_perubahan", "kd_urusan", "kd_bidang", "kd_unit", "kd_sub",
-        "kd_prog", "id_prog", "kd_keg", "kd_rek_1", "kd_rek_2", "kd_rek_3",
-        "kd_rek_4", "kd_rek_5", "jan", "feb", "mar", "apr", "mei",
-        "jun", "jul", "agt", "sep", "okt", "nop", "des"
+        "tahun", "kd_perubahan", "kd_urusan", "kd_bidang",
+        "kd_unit", "kd_sub", "kd_prog", "id_prog",
+        "kd_keg", "kd_rek_1", "kd_rek_2", "kd_rek_3",
+        "kd_rek_4", "kd_rek_5", "jan", "feb",
+        "mar", "apr", "mei", "jun",
+        "jul", "agt", "sep", "okt",
+        "nop", "des"
     ]
 
     await write_file_excel(cursor, fieldnames)
@@ -420,7 +423,7 @@ def import_form():
             "Rekening Pajak",
             "Rencana Anggaran",
             "Skpd",
-            "Sp2d",
+            # "Sp2d",
             "Spm",
             "Spm Detail",
             "Sumber Dana",
