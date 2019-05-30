@@ -5,6 +5,10 @@ import requests
 import pyodbc
 import aiohttp
 import asyncio
+import csv
+import os
+from aiohttp import FormData
+import xlsxwriter
 
 main_loop = asyncio.get_event_loop()
 index = 0
@@ -18,38 +22,63 @@ def validated_row(row):
     return row
 
 
-async def send_request(session, url, headers, payload):
-    async with session.post(url, json=payload, headers=headers) as response:
-        data = {
-            "message": "failed"
-        }
+async def write_file_excel(rows, fieldnames):
+    if os.path.exists('file.xlsx'):
+        os.remove('file.xlsx')
 
-        if response.status == 200:
-            data = await response.json()
+    workbook = xlsxwriter.Workbook('file.xlsx')
+    worksheet = workbook.add_worksheet()
 
-        print(await response.json())
-        status["text"] = data["message"]
+    col = 0
+    for fieldname in fieldnames:
+        worksheet.write(0, col, fieldname)
+        col += 1
+
+    row = 1
+    for columns in rows:
+        col = 0
+        columns = validated_row(columns)
+        for column in columns:
+            worksheet.write(row, col, column)
+            col += 1
+        row += 1
+
+    workbook.close()
+
+
+async def send_request(url, headers):
+    data = FormData()
+    data.add_field('file',
+                   open('file.xlsx', 'rb'),
+                   filename='file.xlsx',
+                   content_type='application/vnd.ms-excel')
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, data=data, headers=headers) as response:
+            data = {
+                "message": "failed"
+            }
+            if response.status == 200:
+                data = await response.json()
+
+            print(await response.json())
+
+            messagebox.showinfo("Import", data["message"])
 
 
 async def import_bank_account(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Rek_5]")
 
-    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/bank-account"
+    url = "http://espm.test/api/import-app/bank-account"
 
-    async with aiohttp.ClientSession() as session:
-        for row in cursor:
-            row = validated_row(row)
-            payload = {
-                "kd_rek_1": str(row[0]),
-                "kd_rek_2": str(row[1]),
-                "kd_rek_3": str(row[2]),
-                "kd_rek_4": str(row[3]),
-                "kd_rek_5": str(row[4]),
-                "nm_rek_5": str(row[5]),
-            }
+    fieldnames = [
+        "kd_rek_1", "kd_rek_2", "kd_rek_3",
+        "kd_rek_4", "kd_rek_5", "nm_rek_5"
+    ]
 
-            await send_request(session, url, headers, payload)
+    await write_file_excel(cursor, fieldnames)
+    await send_request(url, headers)
 
 
 async def import_budget(conn, headers):
@@ -57,312 +86,172 @@ async def import_budget(conn, headers):
     cursor.execute(
         "SELECT * FROM [Simda_2019].[dbo].[Ta_RASK_Arsip] ORDER BY [DateCreate]")
 
-    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/budget"
+    url = "http://espm.test/api/import-app/budget"
 
-    async with aiohttp.ClientSession() as session:
-        for row in cursor:
-            row = validated_row(row)
+    fieldnames = [
+        "tahun", "kd_perubahan", "kd_urusan", "kd_bidang", "kd_unit",
+        "kd_sub", "kd_prog", "id_prog", "kd_keg", "kd_rek_1", "kd_rek_2",
+        "kd_rek_3", "kd_rek_4", "kd_rek_5", "no_rinc", "no_id", "keterangan_rinc", "sat_1",
+        "nilai_1", "sat_2", "nilai_2", "sat_3", "nilai_3", "satuan123",
+        "jml_satuan", "nilai_rp", "total", "keterangan", "kd_ap_pub", "kd_sumber", "datecreate"
+    ]
 
-            payload = {
-                "tahun": str(row[0]),
-                "kd_perubahan": str(row[1]),
-                "kd_urusan": str(row[2]),
-                "kd_bidang": str(row[3]),
-                "kd_unit": str(row[4]),
-                "kd_sub": str(row[5]),
-                "kd_prog": str(row[6]),
-                "id_prog": str(row[7]),
-                "kd_keg": str(row[8]),
-                "kd_rek_1": str(row[9]),
-                "kd_rek_2": str(row[10]),
-                "kd_rek_3": str(row[11]),
-                "kd_rek_4": str(row[12]),
-                "kd_rek_5": str(row[13]),
-                "no_rinc": str(row[14]),
-                "no_id": str(row[15]),
-                "keterangan_rinc": str(row[16]),
-                "sat_1": str(row[17]),
-                "nilai_1": str(row[18]),
-                "sat_2": str(row[19]),
-                "nilai_2": str(row[20]),
-                "sat_3": str(row[21]),
-                "nilai_3": str(row[22]),
-                "satuan123": str(row[23]),
-                "jml_satuan": str(row[24]),
-                "nilai_rp": str(row[25]),
-                "total": str(row[26]),
-                "keterangan": str(row[27]),
-                "kd_ap_pub": str(row[28]),
-                "kd_sumber": str(row[29]),
-                "datecreate": str(row[30])
-            }
-
-            await send_request(session, url, headers, payload)
+    await write_file_excel(cursor, fieldnames)
+    await send_request(url, headers)
 
 
 async def import_budget_tw(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_Rencana_Arsip]")
 
-    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/budget-tw"
+    url = "http://espm.test/api/import-app/budget-tw"
 
-    async with aiohttp.ClientSession() as session:
-        for row in cursor:
-            row = validated_row(row)
+    fieldnames = [
+        "tahun", "kd_perubahan", "kd_urusan", "kd_bidang", "kd_unit", "kd_sub",
+        "kd_prog", "id_prog", "kd_keg", "kd_rek_1", "kd_rek_2", "kd_rek_3",
+        "kd_rek_4", "kd_rek_5", "jan", "feb", "mar", "apr", "mei",
+        "jun", "jul", "agt", "sep", "okt", "nop", "des"
+    ]
 
-            payload = {
-                "tahun": str(row[0]),
-                "kd_perubahan": str(row[1]),
-                "kd_urusan": str(row[2]),
-                "kd_bidang": str(row[3]),
-                "kd_unit": str(row[4]),
-                "kd_sub": str(row[5]),
-                "kd_prog": str(row[6]),
-                "id_prog": str(row[7]),
-                "kd_keg": str(row[8]),
-                "kd_rek_1": str(row[9]),
-                "kd_rek_2": str(row[10]),
-                "kd_rek_3": str(row[11]),
-                "kd_rek_4": str(row[12]),
-                "kd_rek_5": str(row[13]),
-                "jan": str(row[14]),
-                "feb": str(row[15]),
-                "mar": str(row[16]),
-                "apr": str(row[17]),
-                "mei": str(row[18]),
-                "jun": str(row[19]),
-                "jul": str(row[20]),
-                "agt": str(row[21]),
-                "sep": str(row[22]),
-                "okt": str(row[23]),
-                "nop": str(row[24]),
-                "des": str(row[25]),
-            }
-
-            await send_request(session, url, headers, payload)
+    await write_file_excel(cursor, fieldnames)
+    await send_request(url, headers)
 
 
 async def import_event(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_Kegiatan]")
 
-    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/event"
+    url = "http://espm.test/api/import-app/event"
 
-    async with aiohttp.ClientSession() as session:
-        for row in cursor:
-            row = validated_row(row)
+    fieldnames = [
+        "tahun", "kd_urusan", "kd_bidang", "kd_unit", "kd_sub",
+        "kd_prog", "id_prog", "kd_keg", "ket_kegiatan"
+    ]
 
-            payload = {
-                "tahun": str(row[0]),
-                "kd_urusan": str(row[1]),
-                "kd_bidang": str(row[2]),
-                "kd_unit": str(row[3]),
-                "kd_sub": str(row[4]),
-                "kd_prog": str(row[5]),
-                "id_prog": str(row[6]),
-                "kd_keg": str(row[7]),
-                "ket_kegiatan": str(row[8])
-            }
-
-            await send_request(session, url, headers, payload)
+    await write_file_excel(cursor, fieldnames)
+    await send_request(url, headers)
 
 
 async def import_fund_source(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Sumber_Dana]")
 
-    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/fund-source"
+    url = "http://espm.test/api/import-app/fund-source"
 
-    async with aiohttp.ClientSession() as session:
-        for row in cursor:
-            row = validated_row(row)
+    fieldnames = [
+        "kd_sumber", "nm_sumber"
+    ]
 
-            payload = {
-                "kd_sumber": str(row[0]),
-                "nm_sumber": str(row[1]),
-            }
-
-            await send_request(session, url, headers, payload)
+    await write_file_excel(cursor, fieldnames)
+    await send_request(url, headers)
 
 
 async def import_skpd(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Sub_Unit]")
 
-    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/skpd"
+    url = "http://espm.test/api/import-app/skpd"
 
-    async with aiohttp.ClientSession() as session:
-        for row in cursor:
-            row = validated_row(row)
+    fieldnames = [
+        "kd_urusan", "kd_bidang", "kd_unit",
+        "kd_sub", "nm_sub_unit"
+    ]
 
-            payload = {
-                "kd_urusan": str(row[0]),
-                "kd_bidang": str(row[1]),
-                "kd_unit": str(row[2]),
-                "kd_sub": str(row[3]),
-                "nm_sub_unit": str(row[4])
-            }
-
-            await send_request(session, url, headers, payload)
+    await write_file_excel(cursor, fieldnames)
+    await send_request(url, headers)
 
 
 async def import_sp2d(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SP2D]")
 
-    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/sp2d"
+    url = "http://espm.test/api/import-app/sp2d"
 
-    async with aiohttp.ClientSession() as session:
-        for row in cursor:
-            row = validated_row(row)
+    fieldnames = [
+        "tahun", "no_sp2d", "no_spm", "tgl_sp2d",
+        "kd_bank", "no_bku", "nm_penandatangan", "nip_penandatangan",
+        "jbt_penandatangan", "keterangan"
+    ]
 
-            payload = {
-                "tahun": str(row[0]),
-                "no_sp2d": str(row[1]),
-                "no_spm": str(row[2]),
-                "tgl_sp2d": str(row[3]),
-                "kd_bank": str(row[4]),
-                "no_bku": str(row[5]),
-                "nm_penandatangan": str(row[6]),
-                "nip_penandatangan": str(row[7]),
-                "jbt_penandatangan": str(row[8]),
-                "keterangan": str(row[9]),
-            }
-
-            await send_request(session, url, headers, payload)
+    await write_file_excel(cursor, fieldnames)
+    await send_request(url, headers)
 
 
 async def import_spm(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SPM]")
 
-    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/spm"
+    url = "http://espm.test/api/import-app/spm"
 
-    async with aiohttp.ClientSession() as session:
-        for row in cursor:
-            row = validated_row(row)
+    fieldnames = [
+        "tahun", "no_spm", "kd_urusan", "kd_bidang", "kd_unit",
+        "kd_sub", "no_spp", "jn_spm", "tgl_spm", "uraian",
+        "nm_penerima", "bank_penerima", "rek_penerima", "npwp",
+        "bank_pembayar", "nm_penandatangan", "nip_penandatangan",
+        "jbt_penandatangan", "kd_edit"
+    ]
 
-            payload = {
-                "tahun": str(row[0]),
-                "no_spm": str(row[1]),
-                "kd_urusan": str(row[2]),
-                "kd_bidang": str(row[3]),
-                "kd_unit": str(row[4]),
-                "kd_sub": str(row[5]),
-                "no_spp": str(row[6]),
-                "jn_spm": str(row[7]),
-                "tgl_spm": str(row[8]),
-                "uraian": str(row[9]),
-                "nm_penerima": str(row[10]),
-                "bank_penerima": str(row[11]),
-                "rek_penerima": str(row[12]),
-                "npwp": str(row[13]),
-                "bank_pembayar": str(row[14]),
-                "nm_penandatangan": str(row[16]),
-                "nip_penandatangan": str(row[17]),
-                "jbt_penandatangan": str(row[18]),
-                "kd_edit": str(row[19])
-            }
-
-            await send_request(session, url, headers, payload)
+    await write_file_excel(cursor, fieldnames)
+    await send_request(url, headers)
 
 
 async def import_spm_detail(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SPM_Rinc]")
 
-    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/spm-detail"
+    url = "http://espm.test/api/import-app/spm-detail"
 
-    async with aiohttp.ClientSession() as session:
-        for row in cursor:
-            row = validated_row(row)
+    fieldnames = [
+        "tahun", "no_spm", "no_id", "kd_urusan", "kd_bidang",
+        "kd_unit", "kd_sub", "kd_prog", "id_prog", "kd_keg", "kd_rek_1",
+        "kd_rek_2", "kd_rek_3", "kd_rek_4", "kd_rek_5", "nilai"
+    ]
 
-            payload = {
-                "tahun": str(row[0]),
-                "no_spm": str(row[1]),
-                "no_id": str(row[2]),
-                "kd_urusan": str(row[3]),
-                "kd_bidang": str(row[4]),
-                "kd_unit": str(row[5]),
-                "kd_sub": str(row[6]),
-                "kd_prog": str(row[7]),
-                "id_prog": str(row[8]),
-                "kd_keg": str(row[9]),
-                "kd_rek_1": str(row[10]),
-                "kd_rek_2": str(row[11]),
-                "kd_rek_3": str(row[12]),
-                "kd_rek_4": str(row[13]),
-                "kd_rek_5": str(row[14]),
-                "nilai": str(row[15])
-            }
-
-            await send_request(session, url, headers, payload)
+    await write_file_excel(cursor, fieldnames)
+    await send_request(url, headers)
 
 
 async def import_spm_tax_account(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SPM_Pot]")
-    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/spm-tax-account"
-    responses = []
 
-    async with aiohttp.ClientSession() as session:
-        for row in cursor:
-            row = validated_row(row)
+    url = "http://espm.test/api/import-app/spm-tax-account"
 
-            payload = {
-                "tahun": str(row[0]),
-                "no_spm": str(row[1]),
-                "kd_pot_rek": str(row[2]),
-                "nilai": str(row[3])
-            }
+    fieldnames = [
+        "tahun", "no_spm", "kd_pot_rek", "nilai"
+    ]
 
-            responses.append(await send_request(session, url, headers, payload))
-    return responses
+    await write_file_excel(cursor, fieldnames)
+    await send_request(url, headers)
 
 
 async def import_tax(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Pot_SPM]")
-    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/tax"
-    responses = []
 
-    async with aiohttp.ClientSession() as session:
-        for row in cursor:
-            row = validated_row(row)
+    url = "http://espm.test/api/import-app/tax"
 
-            payload = {
-                "kd_pot": str(row[0]),
-                "nm_pot": str(row[1]),
-                "kd_map": str(row[2]),
-            }
+    fieldnames = [
+        "kd_pot", "nm_pot", "kd_map",
+    ]
 
-            responses.append(await send_request(session, url, headers, payload))
-    return responses
+    await write_file_excel(cursor, fieldnames)
+    await send_request(url, headers)
 
 
 async def import_tax_account(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Pot_SPM_Rek]")
-    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/tax-account"
-    responses = []
 
-    async with aiohttp.ClientSession() as session:
-        for row in cursor:
-            row = validated_row(row)
+    url = "http://espm.test/api/import-app/tax-account"
 
-            payload = {
-                "kd_pot_rek": str(row[0]),
-                "kd_rek_1": str(row[1]),
-                "kd_rek_2": str(row[2]),
-                "kd_rek_3": str(row[3]),
-                "kd_rek_4": str(row[4]),
-                "kd_rek_5": str(row[5]),
-                "kd_pot": str(row[6])
-            }
+    fieldnames = [
+        "kd_pot_rek", "kd_rek_1", "kd_rek_2", "kd_rek_3",
+        "kd_rek_4", "kd_rek_5", "kd_pot"
+    ]
 
-            responses.append(await send_request(session, url, headers, payload))
-
-    return responses
+    await write_file_excel(cursor, fieldnames)
+    await send_request(url, headers)
 
 
 async def import_databases(import_data):
@@ -372,13 +261,13 @@ async def import_databases(import_data):
                           "Trusted_Connection=yes;")
 
     headers = {
-        "Content-Type": "application/json",
         "X-Requested-With": "XMLHttpRequest",
         "Accept": "application/json",
         "Authorization": "Bearer " + access_token
     }
 
     print(import_data)
+    Label(window, text="Sedang Import").grid(row=5, column=1, sticky=E)
 
     if import_data == "Anggaran":
         data = await import_budget(conn, headers)
@@ -405,18 +294,12 @@ async def import_databases(import_data):
     elif import_data == "Sumber Dana":
         data = await import_fund_source(conn, headers)
 
-    Label(window, text="Import selesai").grid(
-        row=3, column=2, sticky=W)
-    messagebox.showinfo("Import", "Import berhasil")
+    Label(window, text="Import selesai").grid(row=5, column=1, sticky=E)
 
     return data
 
 
 def import_request():
-    global status
-    status = Label(window)
-    status.grid(row=2, column=2, sticky=W)
-
     current = import_combobox.current()
     import_data = import_combobox.get()
 
@@ -428,7 +311,8 @@ def import_request():
         except:
             pass
     else:
-        messagebox.showerror("Import", "Data import tidak valid")    
+        messagebox.showerror("Import", "Data import tidak valid")
+
 
 def reset_form():
     username_lbl.destroy()
@@ -474,7 +358,7 @@ def login_request():
     }
 
     try:
-        req = requests.post("https://arcane-hamlet-59445.herokuapp.com/api/auth/login",
+        req = requests.post("http://espm.test/api/auth/login",
                             json=payload, headers=headers)
     except:
         messagebox.showerror("Login", "login gagal")
@@ -509,7 +393,7 @@ def import_form():
 
     try:
         req = requests.get(
-            "https://arcane-hamlet-59445.herokuapp.com/api/import-app/meta", headers=headers)
+            "http://espm.test/api/import-app/meta", headers=headers)
 
         req_json = req.json()
         spm_count = req_json["spm_count"]
