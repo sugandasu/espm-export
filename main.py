@@ -70,7 +70,7 @@ async def import_bank_account(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Rek_5]")
 
-    url = "http://espm.test/api/import-app/bank-account"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/bank-account"
 
     fieldnames = [
         "kd_rek_1", "kd_rek_2", "kd_rek_3",
@@ -86,7 +86,7 @@ async def import_budget(conn, headers):
     cursor.execute(
         "SELECT * FROM [Simda_2019].[dbo].[Ta_RASK_Arsip] ORDER BY [DateCreate]")
 
-    url = "http://espm.test/api/import-app/budget"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/budget"
 
     fieldnames = [
         "tahun", "kd_perubahan", "kd_urusan", "kd_bidang", "kd_unit",
@@ -102,9 +102,9 @@ async def import_budget(conn, headers):
 
 async def import_budget_tw(conn, headers):
     cursor = conn.cursor()
-    cursor.execute("SELECT TOP 41000 * FROM [Simda_2019].[dbo].[Ta_Rencana_Arsip]")
+    cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_Rencana_Arsip]")
 
-    url = "http://espm.test/api/import-app/budget-tw"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/budget-tw"
 
     fieldnames = [
         "tahun", "kd_perubahan", "kd_urusan", "kd_bidang",
@@ -124,7 +124,7 @@ async def import_event(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_Kegiatan]")
 
-    url = "http://espm.test/api/import-app/event"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/event"
 
     fieldnames = [
         "tahun", "kd_urusan", "kd_bidang", "kd_unit", "kd_sub",
@@ -139,7 +139,7 @@ async def import_fund_source(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Sumber_Dana]")
 
-    url = "http://espm.test/api/import-app/fund-source"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/fund-source"
 
     fieldnames = [
         "kd_sumber", "nm_sumber"
@@ -153,7 +153,7 @@ async def import_skpd(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Sub_Unit]")
 
-    url = "http://espm.test/api/import-app/skpd"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/skpd"
 
     fieldnames = [
         "kd_urusan", "kd_bidang", "kd_unit",
@@ -168,7 +168,7 @@ async def import_sp2d(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SP2D]")
 
-    url = "http://espm.test/api/import-app/sp2d"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/sp2d"
 
     fieldnames = [
         "tahun", "no_sp2d", "no_spm", "tgl_sp2d",
@@ -184,7 +184,7 @@ async def import_spm(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SPM]")
 
-    url = "http://espm.test/api/import-app/spm"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/spm"
 
     fieldnames = [
         "tahun", "no_spm", "kd_urusan", "kd_bidang", "kd_unit",
@@ -202,7 +202,7 @@ async def import_spm_detail(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SPM_Rinc]")
 
-    url = "http://espm.test/api/import-app/spm-detail"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/spm-detail"
 
     fieldnames = [
         "tahun", "no_spm", "no_id", "kd_urusan", "kd_bidang",
@@ -218,7 +218,7 @@ async def import_spm_tax_account(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SPM_Pot]")
 
-    url = "http://espm.test/api/import-app/spm-tax-account"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/spm-tax-account"
 
     fieldnames = [
         "tahun", "no_spm", "kd_pot_rek", "nilai"
@@ -232,7 +232,7 @@ async def import_tax(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Pot_SPM]")
 
-    url = "http://espm.test/api/import-app/tax"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/tax"
 
     fieldnames = [
         "kd_pot", "nm_pot", "kd_map",
@@ -246,7 +246,7 @@ async def import_tax_account(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Pot_SPM_Rek]")
 
-    url = "http://espm.test/api/import-app/tax-account"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/tax-account"
 
     fieldnames = [
         "kd_pot_rek", "kd_rek_1", "kd_rek_2", "kd_rek_3",
@@ -361,7 +361,7 @@ def login_request():
     }
 
     try:
-        req = requests.post("http://espm.test/api/auth/login",
+        req = requests.post("https://arcane-hamlet-59445.herokuapp.com/api/auth/login",
                             json=payload, headers=headers)
     except:
         messagebox.showerror("Login", "login gagal")
@@ -396,7 +396,7 @@ def import_form():
 
     try:
         req = requests.get(
-            "http://espm.test/api/import-app/meta", headers=headers)
+            "https://arcane-hamlet-59445.herokuapp.com/api/import-app/meta", headers=headers)
 
         req_json = req.json()
         spm_count = req_json["spm_count"]
