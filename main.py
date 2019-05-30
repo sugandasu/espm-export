@@ -35,7 +35,7 @@ async def import_bank_account(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Rek_5]")
 
-    url = "http://espm.test/api/import-app/bank-account"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/bank-account"
 
     async with aiohttp.ClientSession() as session:
         for row in cursor:
@@ -57,7 +57,7 @@ async def import_budget(conn, headers):
     cursor.execute(
         "SELECT * FROM [Simda_2019].[dbo].[Ta_RASK_Arsip] ORDER BY [DateCreate]")
 
-    url = "http://espm.test/api/import-app/budget"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/budget"
 
     async with aiohttp.ClientSession() as session:
         for row in cursor:
@@ -104,7 +104,7 @@ async def import_budget_tw(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_Rencana_Arsip]")
 
-    url = "http://espm.test/api/import-app/budget-tw"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/budget-tw"
 
     async with aiohttp.ClientSession() as session:
         for row in cursor:
@@ -146,7 +146,7 @@ async def import_event(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_Kegiatan]")
 
-    url = "http://espm.test/api/import-app/event"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/event"
 
     async with aiohttp.ClientSession() as session:
         for row in cursor:
@@ -171,7 +171,7 @@ async def import_fund_source(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Sumber_Dana]")
 
-    url = "http://espm.test/api/import-app/fund-source"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/fund-source"
 
     async with aiohttp.ClientSession() as session:
         for row in cursor:
@@ -189,7 +189,7 @@ async def import_skpd(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Sub_Unit]")
 
-    url = "http://espm.test/api/import-app/skpd"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/skpd"
 
     async with aiohttp.ClientSession() as session:
         for row in cursor:
@@ -210,7 +210,7 @@ async def import_sp2d(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SP2D]")
 
-    url = "http://espm.test/api/import-app/sp2d"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/sp2d"
 
     async with aiohttp.ClientSession() as session:
         for row in cursor:
@@ -236,7 +236,7 @@ async def import_spm(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SPM]")
 
-    url = "http://espm.test/api/import-app/spm"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/spm"
 
     async with aiohttp.ClientSession() as session:
         for row in cursor:
@@ -271,7 +271,7 @@ async def import_spm_detail(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SPM_Rinc]")
 
-    url = "http://espm.test/api/import-app/spm-detail"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/spm-detail"
 
     async with aiohttp.ClientSession() as session:
         for row in cursor:
@@ -302,7 +302,7 @@ async def import_spm_detail(conn, headers):
 async def import_spm_tax_account(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SPM_Pot]")
-    url = "http://espm.test/api/import-app/spm-tax-account"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/spm-tax-account"
     responses = []
 
     async with aiohttp.ClientSession() as session:
@@ -323,7 +323,7 @@ async def import_spm_tax_account(conn, headers):
 async def import_tax(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Pot_SPM]")
-    url = "http://espm.test/api/import-app/tax"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/tax"
     responses = []
 
     async with aiohttp.ClientSession() as session:
@@ -343,7 +343,7 @@ async def import_tax(conn, headers):
 async def import_tax_account(conn, headers):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Pot_SPM_Rek]")
-    url = "http://espm.test/api/import-app/tax-account"
+    url = "https://arcane-hamlet-59445.herokuapp.com/api/import-app/tax-account"
     responses = []
 
     async with aiohttp.ClientSession() as session:
@@ -378,29 +378,31 @@ async def import_databases(import_data):
         "Authorization": "Bearer " + access_token
     }
 
-    if import_data == 0:
+    print(import_data)
+
+    if import_data == "Anggaran":
         data = await import_budget(conn, headers)
-    elif import_data == 1:
+    elif import_data == "Kegiatan":
         data = await import_event(conn, headers)
-    elif import_data == 2:
+    elif import_data == "Pajak":
         data = await import_tax(conn, headers)
-    elif import_data == 3:
-        spm_tax_account = await import_spm_tax_account(conn, headers)
-    elif import_data == 4:
+    elif import_data == "Pajak Spm":
+        data = await import_spm_tax_account(conn, headers)
+    elif import_data == "Rekening":
         data = await import_bank_account(conn, headers)
-    elif import_data == 5:
+    elif import_data == "Rekening Pajak":
         data = await import_tax_account(conn, headers)
-    elif import_data == 6:
-        budget_tw = await import_budget_tw(conn, headers)
-    elif import_data == 7:
+    elif import_data == "Rencana Anggaran":
+        data = await import_budget_tw(conn, headers)
+    elif import_data == "Skpd":
         data = await import_skpd(conn, headers)
-    elif import_data == 8:
+    elif import_data == "Sp2d":
         data = await import_sp2d(conn, headers)
-    elif import_data == 9:
+    elif import_data == "Spm":
         data = await import_spm(conn, headers)
-    elif import_data == 10:
+    elif import_data == "Spm Detail":
         data = await import_spm_detail(conn, headers)
-    elif import_data == 11:
+    elif import_data == "Sumber Dana":
         data = await import_fund_source(conn, headers)
 
     Label(window, text="Import selesai").grid(
@@ -415,9 +417,10 @@ def import_request():
     status = Label(window)
     status.grid(row=2, column=2, sticky=W)
 
-    import_data = import_combobox.current()
+    current = import_combobox.current()
+    import_data = import_combobox.get()
 
-    if (import_data >= 0 and import_data <= 11):
+    if (current >= 0 and current <= 11):
         future = asyncio.create_task(import_databases(import_data))
 
         try:
@@ -471,7 +474,7 @@ def login_request():
     }
 
     try:
-        req = requests.post("http://espm.test/api/auth/login",
+        req = requests.post("https://arcane-hamlet-59445.herokuapp.com/api/auth/login",
                             json=payload, headers=headers)
     except:
         messagebox.showerror("Login", "login gagal")
@@ -506,7 +509,7 @@ def import_form():
 
     try:
         req = requests.get(
-            "http://espm.test/api/import-app/meta", headers=headers)
+            "https://arcane-hamlet-59445.herokuapp.com/api/import-app/meta", headers=headers)
 
         req_json = req.json()
         spm_count = req_json["spm_count"]
@@ -530,12 +533,12 @@ def import_form():
             "Pajak",
             "Pajak Spm",
             "Rekening",
-            "Rekening Pajak"
+            "Rekening Pajak",
             "Rencana Anggaran",
             "Skpd",
             "Sp2d",
             "Spm",
-            "Spm Detail"
+            "Spm Detail",
             "Sumber Dana",
         )
         import_combobox.grid(row=3, column=1, sticky=E)
