@@ -22,9 +22,29 @@ def validated_row(row):
     return row
 
 
-async def write_file_excel(rows, fieldnames):
+def reset_file():
     if os.path.exists('file.xlsx'):
         os.remove('file.xlsx')
+        return False
+
+
+def get_data(query, querycount):
+    conn = pyodbc.connect("Driver={SQL Server};"
+                          "Server=.\SQLEXPRESS;"
+                          "Database=Simda_2019;"
+                          "Trusted_Connection=yes;")
+
+    cursor = conn.cursor()
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    cursor.execute(querycount)
+    (rowscount,) = cursor.fetchone()
+
+    return rows, rowscount
+
+
+async def send_request_file(url, rows, rowscount, fieldnames):
+    reset_file()
 
     workbook = xlsxwriter.Workbook('file.xlsx')
     worksheet = workbook.add_worksheet()
@@ -35,18 +55,44 @@ async def write_file_excel(rows, fieldnames):
         col += 1
 
     row = 1
+    rowcount = 1
     for columns in rows:
         col = 0
         columns = validated_row(columns)
         for column in columns:
             worksheet.write(row, col, column)
             col += 1
+
+        # kalau data sudah 1000 dan sudah sampai akhir row
+        if (row % 1000 == 0) or (rowcount == rowscount):
+            Label(window, text=rowcount + " data").grid(row=6, column=1, sticky=E)
+            workbook.close()
+            await send_request(url)
+
+            reset_file()
+            workbook = xlsxwriter.Workbook('file.xlsx')
+            worksheet = workbook.add_worksheet()
+            
+            col = 0
+            for fieldname in fieldnames:
+                worksheet.write(0, col, fieldname)
+                col += 1
+            
+            row = 0
+
         row += 1
+        rowcount += 1
+    
+    messagebox.showinfo("Import", "Import selesai")
 
-    workbook.close()
 
+async def send_request(url):
+    headers = {
+        "X-Requested-With": "XMLHttpRequest",
+        "Accept": "application/json",
+        "Authorization": "Bearer " + access_token
+    }
 
-async def send_request(url, headers):
     data = FormData()
     data.add_field('file',
                    open('file.xlsx', 'rb'),
@@ -63,31 +109,25 @@ async def send_request(url, headers):
 
             print(await response.json())
 
-            messagebox.showinfo("Import", data["message"])
 
-
-async def import_bank_account(conn, headers):
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Rek_5]")
-
+async def import_bank_account():
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ref_Rek_5]"
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ref_Rek_5]"
+    rows, rowscount = get_data(query, querycount)
     url = "http://espm.test/api/import-app/bank-account"
-
     fieldnames = [
         "kd_rek_1", "kd_rek_2", "kd_rek_3",
         "kd_rek_4", "kd_rek_5", "nm_rek_5"
     ]
 
-    await write_file_excel(cursor, fieldnames)
-    await send_request(url, headers)
+    await send_request_file(url, rows, rowscount, fieldnames)
 
 
-async def import_budget(conn, headers):
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT * FROM [Simda_2019].[dbo].[Ta_RASK_Arsip] ORDER BY [DateCreate]")
-
+async def import_budget():
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_RASK_Arsip]"
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_RASK_Arsip]"
+    rows, rowscount = get_data(query, querycount)
     url = "http://espm.test/api/import-app/budget"
-
     fieldnames = [
         "tahun", "kd_perubahan", "kd_urusan", "kd_bidang", "kd_unit",
         "kd_sub", "kd_prog", "id_prog", "kd_keg", "kd_rek_1", "kd_rek_2",
@@ -96,16 +136,14 @@ async def import_budget(conn, headers):
         "jml_satuan", "nilai_rp", "total", "keterangan", "kd_ap_pub", "kd_sumber", "datecreate"
     ]
 
-    await write_file_excel(cursor, fieldnames)
-    await send_request(url, headers)
+    await send_request_file(url, rows, rowscount, fieldnames)
 
 
-async def import_budget_tw(conn, headers):
-    cursor = conn.cursor()
-    cursor.execute("SELECT TOP 41000 * FROM [Simda_2019].[dbo].[Ta_Rencana_Arsip]")
-
+async def import_budget_tw():
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_Rencana_Arsip]"
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_Rencana_Arsip]"
+    rows, rowscount = get_data(query, querycount)
     url = "http://espm.test/api/import-app/budget-tw"
-
     fieldnames = [
         "tahun", "kd_perubahan", "kd_urusan", "kd_bidang",
         "kd_unit", "kd_sub", "kd_prog", "id_prog",
@@ -116,76 +154,66 @@ async def import_budget_tw(conn, headers):
         "nop", "des"
     ]
 
-    await write_file_excel(cursor, fieldnames)
-    await send_request(url, headers)
+    await send_request_file(url, rows, rowscount, fieldnames)
 
 
-async def import_event(conn, headers):
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_Kegiatan]")
-
+async def import_event():
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_Kegiatan]"
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_Kegiatan]"
+    rows, rowscount = get_data(query, querycount)
     url = "http://espm.test/api/import-app/event"
-
     fieldnames = [
         "tahun", "kd_urusan", "kd_bidang", "kd_unit", "kd_sub",
         "kd_prog", "id_prog", "kd_keg", "ket_kegiatan"
     ]
 
-    await write_file_excel(cursor, fieldnames)
-    await send_request(url, headers)
+    await send_request_file(url, rows, rowscount, fieldnames)
 
 
-async def import_fund_source(conn, headers):
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Sumber_Dana]")
-
+async def import_fund_source():
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ref_Sumber_Dana]"
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ref_Sumber_Dana]"
+    rows, rowscount = get_data(query, querycount)
     url = "http://espm.test/api/import-app/fund-source"
-
     fieldnames = [
         "kd_sumber", "nm_sumber"
     ]
 
-    await write_file_excel(cursor, fieldnames)
-    await send_request(url, headers)
+    await send_request_file(url, rows, rowscount, fieldnames)
 
 
-async def import_skpd(conn, headers):
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Sub_Unit]")
-
+async def import_skpd():
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ref_Sub_Unit]"
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ref_Sub_Unit]"
+    rows, rowscount = get_data(query, querycount)
     url = "http://espm.test/api/import-app/skpd"
-
     fieldnames = [
         "kd_urusan", "kd_bidang", "kd_unit",
         "kd_sub", "nm_sub_unit"
     ]
 
-    await write_file_excel(cursor, fieldnames)
-    await send_request(url, headers)
+    await send_request_file(url, rows, rowscount, fieldnames)
 
 
-async def import_sp2d(conn, headers):
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SP2D]")
-
+async def import_sp2d():
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_SP2D]"
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_SP2D]"
+    rows, rowscount = get_data(query, querycount)
     url = "http://espm.test/api/import-app/sp2d"
-
     fieldnames = [
         "tahun", "no_sp2d", "no_spm", "tgl_sp2d",
         "kd_bank", "no_bku", "nm_penandatangan", "nip_penandatangan",
         "jbt_penandatangan", "keterangan"
     ]
 
-    await write_file_excel(cursor, fieldnames)
-    await send_request(url, headers)
+    await send_request_file(url, rows, rowscount, fieldnames)
 
 
-async def import_spm(conn, headers):
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SPM]")
-
+async def import_spm():
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_SPM]"
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_SPM]"
+    rows, rowscount = get_data(query, querycount)
     url = "http://espm.test/api/import-app/spm"
-
     fieldnames = [
         "tahun", "no_spm", "kd_urusan", "kd_bidang", "kd_unit",
         "kd_sub", "no_spp", "jn_spm", "tgl_spm", "uraian",
@@ -194,108 +222,88 @@ async def import_spm(conn, headers):
         "jbt_penandatangan", "kd_edit"
     ]
 
-    await write_file_excel(cursor, fieldnames)
-    await send_request(url, headers)
+    await send_request_file(url, rows, rowscount, fieldnames)
 
 
-async def import_spm_detail(conn, headers):
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SPM_Rinc]")
-
+async def import_spm_detail():
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_SPM_Rinc]"
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_SPM_Rinc]"
+    rows, rowscount = get_data(query, querycount)
     url = "http://espm.test/api/import-app/spm-detail"
-
     fieldnames = [
         "tahun", "no_spm", "no_id", "kd_urusan", "kd_bidang",
         "kd_unit", "kd_sub", "kd_prog", "id_prog", "kd_keg", "kd_rek_1",
         "kd_rek_2", "kd_rek_3", "kd_rek_4", "kd_rek_5", "nilai"
     ]
 
-    await write_file_excel(cursor, fieldnames)
-    await send_request(url, headers)
+    await send_request_file(url, rows, rowscount, fieldnames)
 
 
-async def import_spm_tax_account(conn, headers):
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ta_SPM_Pot]")
-
+async def import_spm_tax_account():
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_SPM_Pot]"
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_SPM_Pot]"
+    rows, rowscount = get_data(query, querycount)
     url = "http://espm.test/api/import-app/spm-tax-account"
-
     fieldnames = [
         "tahun", "no_spm", "kd_pot_rek", "nilai"
     ]
 
-    await write_file_excel(cursor, fieldnames)
-    await send_request(url, headers)
+    await send_request_file(url, rows, rowscount, fieldnames)
 
 
-async def import_tax(conn, headers):
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Pot_SPM]")
-
+async def import_tax():
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ref_Pot_SPM]"
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ref_Pot_SPM]"
+    rows, rowscount = get_data(query, querycount)
     url = "http://espm.test/api/import-app/tax"
-
     fieldnames = [
         "kd_pot", "nm_pot", "kd_map",
     ]
 
-    await write_file_excel(cursor, fieldnames)
-    await send_request(url, headers)
+    await send_request_file(url, rows, rowscount, fieldnames)
 
 
-async def import_tax_account(conn, headers):
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM [Simda_2019].[dbo].[Ref_Pot_SPM_Rek]")
-
+async def import_tax_account():
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ref_Pot_SPM_Rek]"
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ref_Pot_SPM_Rek]"
+    rows, rowscount = get_data(query, querycount)
     url = "http://espm.test/api/import-app/tax-account"
-
     fieldnames = [
         "kd_pot_rek", "kd_rek_1", "kd_rek_2", "kd_rek_3",
         "kd_rek_4", "kd_rek_5", "kd_pot"
     ]
 
-    await write_file_excel(cursor, fieldnames)
-    await send_request(url, headers)
+    await send_request_file(url, rows, rowscount, fieldnames)
 
 
 async def import_databases(import_data):
-    conn = pyodbc.connect("Driver={SQL Server};"
-                          "Server=.\SQLEXPRESS;"
-                          "Database=Simda_2019;"
-                          "Trusted_Connection=yes;")
-
-    headers = {
-        "X-Requested-With": "XMLHttpRequest",
-        "Accept": "application/json",
-        "Authorization": "Bearer " + access_token
-    }
-
     print(import_data)
     Label(window, text="Sedang Import").grid(row=5, column=1, sticky=E)
 
     if import_data == "Anggaran":
-        data = await import_budget(conn, headers)
+        data = await import_budget()
     elif import_data == "Kegiatan":
-        data = await import_event(conn, headers)
+        data = await import_event()
     elif import_data == "Pajak":
-        data = await import_tax(conn, headers)
+        data = await import_tax()
     elif import_data == "Pajak Spm":
-        data = await import_spm_tax_account(conn, headers)
+        data = await import_spm_tax_account()
     elif import_data == "Rekening":
-        data = await import_bank_account(conn, headers)
+        data = await import_bank_account()
     elif import_data == "Rekening Pajak":
-        data = await import_tax_account(conn, headers)
+        data = await import_tax_account()
     elif import_data == "Rencana Anggaran":
-        data = await import_budget_tw(conn, headers)
+        data = await import_budget_tw()
     elif import_data == "Skpd":
-        data = await import_skpd(conn, headers)
+        data = await import_skpd()
     elif import_data == "Sp2d":
-        data = await import_sp2d(conn, headers)
+        data = await import_sp2d()
     elif import_data == "Spm":
-        data = await import_spm(conn, headers)
+        data = await import_spm()
     elif import_data == "Spm Detail":
-        data = await import_spm_detail(conn, headers)
+        data = await import_spm_detail()
     elif import_data == "Sumber Dana":
-        data = await import_fund_source(conn, headers)
+        data = await import_fund_source()
 
     Label(window, text="Import selesai").grid(row=5, column=1, sticky=E)
 
@@ -423,7 +431,6 @@ def import_form():
             "Rekening Pajak",
             "Rencana Anggaran",
             "Skpd",
-            # "Sp2d",
             "Spm",
             "Spm Detail",
             "Sumber Dana",
