@@ -65,7 +65,7 @@ async def send_request_file(url, rows, rowscount, fieldnames):
 
         # kalau data sudah 1000 dan sudah sampai akhir row
         if (row % 1000 == 0) or (rowcount == rowscount):
-            Label(window, text=rowcount + " data").grid(row=6, column=1, sticky=E)
+            Label(window, text=str(rowcount) + " data").grid(row=6, column=1, sticky=E)
             workbook.close()
             await send_request(url)
 
@@ -403,20 +403,20 @@ def import_form():
     user_lbl.grid(row=1, column=0, sticky=W, padx=4)
 
     try:
-        req = requests.get(
-            "http://espm.test/api/import-app/meta", headers=headers)
+        # req = requests.get(
+        #     "http://espm.test/api/import-app/meta", headers=headers)
 
-        req_json = req.json()
-        spm_count = req_json["spm_count"]
-        last_import = req_json["last_import"]
+        # req_json = req.json()
+        # spm_count = req_json["spm_count"]
+        # last_import = req_json["last_import"]
 
-        text = "Jumlah Spm: " + str(spm_count)
-        spm_number_lbl = Label(window, text=text)
-        spm_number_lbl.grid(row=2, column=0, sticky=W, padx=4)
+        # text = "Jumlah Spm: " + str(spm_count)
+        # spm_number_lbl = Label(window, text=text)
+        # spm_number_lbl.grid(row=2, column=0, sticky=W, padx=4)
 
-        text = "Tanggal Terakhir Import: " + str(last_import)
-        last_import_lbl = Label(window, text=text)
-        last_import_lbl.grid(row=3, column=0, sticky=W, padx=4)
+        # text = "Tanggal Terakhir Import: " + str(last_import)
+        # last_import_lbl = Label(window, text=text)
+        # last_import_lbl.grid(row=3, column=0, sticky=W, padx=4)
 
         text = "Pilih Data yang ingin diimport"
         import_combobox_lbl = Label(window, text=text)
