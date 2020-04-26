@@ -663,6 +663,7 @@ if __name__ == "__main__":
     window.title("Espm import 1.0")
     window.geometry("700x500")
 
-    read_server_file()
+    login_frame = login_view()
+    login_frame.pack(fill="both", expand=True)
 
     main_loop.run_until_complete(run_tk(window))
