@@ -369,7 +369,7 @@ def login_request():
     }
 
     try:
-        req = requests.post("http://espm.test/api/auth/login",
+        req = requests.post("https://arcane-hamlet-59445.herokuapp.com/api/auth/login",
                             json=payload, headers=headers)
     except:
         messagebox.showerror("Login", "login gagal")
