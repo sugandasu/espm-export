@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from tkinter import *
 from tkinter import messagebox
 from tkinter import ttk
@@ -12,7 +13,7 @@ import os
 import xlsxwriter
 
 main_loop = asyncio.get_event_loop()
-
+load_dotenv()
 
 def read_server_file():
     global server_file_frame
@@ -50,17 +51,11 @@ def test_connection_input():
 
 def test_connection(server, db):
     global conn
-    server = '172.16.77.5' 
-    database = 'simda2020' 
-    username = 'bpkad' 
-    password = 'bpk4d@simda2020' 
+    server=os.getenv(server)
+    database=os.getenv(database) 
+    username=os.getenv(username)
+    password=os.getenv(password)
     conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
-    # cursor = cnxn.cursor()
-    # server_text = "Server=" + server + ';'
-    # db_text = "Database=" + db + ';'
-    # connect_ent = "Driver={SQL Server};" + \
-        # server_text + db_text + "Trusted_Connection=yes;"
-    # conn = pyodbc.connect(connect_ent)
 
     if conn:
         return True

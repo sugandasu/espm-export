@@ -3,3 +3,4 @@ file.xlsx
 build
 dist
 *.spec
+.env
