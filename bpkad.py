@@ -189,13 +189,9 @@ def validate_import():
 
 
 async def import_anggaran_all(begin_data, end_data):
-    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_RASK_Arsip] " + "WHERE kd_urusan=" + str(skpd["kd_urusan"]) + " AND kd_bidang=" + str(
-        skpd["kd_bidang"]) + " AND kd_unit=" + str(skpd["kd_unit"]) + " AND kd_sub=" + str(
-        skpd["kd_sub"]) + " AND DateCreate >= '" + str(begin_data) + " 00:00:00.000'" + " AND DateCreate <= '" + str(
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_RASK_Arsip] " + "WHERE DateCreate >= '" + str(begin_data) + " 00:00:00.000'" + " AND DateCreate <= '" + str(
         end_data) + " 00:00:00.000'"
-    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_RASK_Arsip] " + "WHERE kd_urusan=" + str(skpd["kd_urusan"]) + " AND kd_bidang=" + str(
-        skpd["kd_bidang"]) + " AND kd_unit=" + str(skpd["kd_unit"]) + " AND kd_sub=" + str(
-        skpd["kd_sub"]) + " AND DateCreate >= '" + str(begin_data) + " 00:00:00.000'" + " AND DateCreate <= '" + str(
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_RASK_Arsip] " + "WHERE DateCreate >= '" + str(begin_data) + " 00:00:00.000'" + " AND DateCreate <= '" + str(
         end_data) + " 00:00:00.000'"
     rows, rowscount = get_data(query, querycount)
     url = "https://espm.online/api/import-app/budget"
@@ -219,12 +215,8 @@ async def import_anggaran_all(begin_data, end_data):
 
 async def import_anggaran_tw_all(begin_data, end_data):
     begin_data = begin_data[0:4]
-    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_Rencana_Arsip] " + "WHERE kd_urusan=" + str(skpd["kd_urusan"]) + " AND kd_bidang=" + str(
-        skpd["kd_bidang"]) + " AND kd_unit=" + str(skpd["kd_unit"]) + " AND kd_sub=" + str(
-        skpd["kd_sub"]) + " AND tahun = '" + str(begin_data) + "'"
-    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_Rencana_Arsip] " + "WHERE kd_urusan=" + str(skpd["kd_urusan"]) + " AND kd_bidang=" + str(
-        skpd["kd_bidang"]) + " AND kd_unit=" + str(skpd["kd_unit"]) + " AND kd_sub=" + str(
-        skpd["kd_sub"]) + " AND tahun = '" + str(begin_data) + "'"
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_Rencana_Arsip] " + "WHERE tahun = '" + str(begin_data) + "'"
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_Rencana_Arsip] " + "WHERE tahun = '" + str(begin_data) + "'"
     rows, rowscount = get_data(query, querycount)
     url = "https://espm.online/api/import-app/budget-tw"
     filename = "anggaran-tw.xlsx"
@@ -248,13 +240,9 @@ async def import_anggaran_tw_all(begin_data, end_data):
 
 
 async def import_spm_all(begin_data, end_data):
-    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_SPM] " + "WHERE kd_urusan=" + str(skpd["kd_urusan"]) + " AND kd_bidang=" + str(
-        skpd["kd_bidang"]) + " AND kd_unit=" + str(skpd["kd_unit"]) + " AND kd_sub=" + str(
-        skpd["kd_sub"]) + " AND Tgl_SPM >= '" + str(begin_data) + " 00:00:00.000'" + " AND Tgl_SPM <= '" + str(
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_SPM] " + "WHERE Tgl_SPM >= '" + str(begin_data) + " 00:00:00.000'" + " AND Tgl_SPM <= '" + str(
         end_data) + " 00:00:00.000'"
-    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_SPM] " + "WHERE kd_urusan=" + str(skpd["kd_urusan"]) + " AND kd_bidang=" + str(
-        skpd["kd_bidang"]) + " AND kd_unit=" + str(skpd["kd_unit"]) + " AND kd_sub=" + str(
-        skpd["kd_sub"]) + " AND Tgl_SPM >= '" + str(begin_data) + " 00:00:00.000'" + " AND Tgl_SPM <= '" + str(
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_SPM] " + "WHERE Tgl_SPM >= '" + str(begin_data) + " 00:00:00.000'" + " AND Tgl_SPM <= '" + str(
         end_data) + " 00:00:00.000'"
 
     rows, rowscount = get_data(query, querycount)
@@ -276,10 +264,8 @@ async def import_spm_all(begin_data, end_data):
 
 
 async def import_spm_one(spm_data):
-    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_SPM] " + "WHERE kd_urusan=" + str(skpd["kd_urusan"]) + " AND kd_bidang=" + str(
-        skpd["kd_bidang"]) + " AND kd_unit=" + str(skpd["kd_unit"]) + " AND kd_sub=" + str(skpd["kd_sub"]) + " AND no_spm='" + str(spm_data) + "'"
-    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_SPM] " + "WHERE kd_urusan=" + str(skpd["kd_urusan"]) + " AND kd_bidang=" + str(
-        skpd["kd_bidang"]) + " AND kd_unit=" + str(skpd["kd_unit"]) + " AND kd_sub=" + str(skpd["kd_sub"]) + " AND no_spm='" + str(spm_data) + "'"
+    query = "SELECT * FROM [Simda_2019].[dbo].[Ta_SPM] " + "WHERE no_spm='" + str(spm_data) + "'"
+    querycount = "SELECT COUNT(*) FROM [Simda_2019].[dbo].[Ta_SPM] " + "WHERE no_spm='" + str(spm_data) + "'"
     rows, rowscount = get_data(query, querycount)
     url = "https://espm.online/api/import-app/spm"
     fieldnames = [
@@ -442,9 +428,8 @@ def login_request():
             req_json = req.json()
             role = req_json["user"]["roles"][0]["abbr"]
 
-            if role == "skpd":
+            if role != "skpd":
                 user = req_json["user"]
-                skpd = req_json["user"]["skpds"][0]
                 access_token = req_json["access_token"]
 
                 login_frame.destroy()
