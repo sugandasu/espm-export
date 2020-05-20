@@ -15,76 +15,38 @@ import xlsxwriter
 main_loop = asyncio.get_event_loop()
 load_dotenv()
 
-def read_server_file():
-    global server_file_frame
-    global login_frame
 
-    server_file_exist = os.path.exists('sqlserver.txt')
-    if server_file_exist:
-        file = open("sqlserver.txt", "r")
-        line = file.readline()
-        server_db = line.split()
-        server = server_db[0]
-        db = server_db[1]
-        test_connection(server, db)
-        if test_connection(server, db):
-            login_frame = login_view()
-            login_frame.pack(fill="both", expand=True)
-        else:
-            server_file_frame = server_file_view()
-            server_file_frame.pack(fill="both", expand=True)
-    else:
-        server_file_frame = server_file_view()
-        server_file_frame.pack(fill="both", expand=True)
-
-
-def test_connection_input():
-    server_in = server_ent.get()
-    db_in = db_ent.get()
-
-    if test_connection(server_in, db_in):
-        messagebox.showinfo("Koneksi", "Koneksi berhasil")
-        save_server_file()
-    else:
-        messagebox.showerror("Koneksi", "Koneksi gagal")
-
-
-def test_connection(server, db):
-    global conn
-    server=os.getenv(server)
-    database=os.getenv(database) 
-    username=os.getenv(username)
-    password=os.getenv(password)
-    conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
-
-    if conn:
-        return True
-    else:
-        return False
-
-
-def save_server_file():
-    server_in = server_ent.get()
-    db_in = db_ent.get()
-
-    if os.path.exists("sqlserver.txt"):
-        os.remove("sqlserver.txt")
-
-    file = open("sqlserver.txt", "w")
-    file.write(server_in)
-    file.write(" ")
-    file.write(db_in)
-    file.close()
-
-    server_file_frame.destroy()
-    login_frame = login_view()
-    login_frame.pack(fill="both", expand=True)
+# UTIL
 
 
 def reset_file(filename):
     if os.path.exists(filename):
         os.remove(filename)
         return False
+
+
+# SQL SERVER
+
+
+def connect_to_database():
+    global conn
+    conn = False
+    SERVER=os.getenv('SERVER')
+    DATABASE=os.getenv('DATABASE') 
+    UID=os.getenv('UID')
+    PWD=os.getenv('PWD')
+
+    try:
+        conn_str = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER='+SERVER+';DATABASE='+DATABASE+';UID='+UID+';PWD='+ PWD + ';Trusted_Connection=NO;'
+        conn = pyodbc.connect(conn_str)
+        if not conn:
+            messagebox.showerror("Database", "Koneksi gagal akun tidak ditemukan!")
+        else:
+            return True
+    except pyodbc.Error as identifier:
+        messagebox.showerror("Database", "Koneksi gagal, driver tidak ditemukan!")
+        window.destroy()
+
 
 # DATABASE
 
@@ -408,7 +370,6 @@ async def send_spm_all(url, rows, rowscount, fieldnames):
 
 def login_request():
     global user
-    global skpd
     global access_token
     global import_frame
 
@@ -428,7 +389,7 @@ def login_request():
             req_json = req.json()
             role = req_json["user"]["roles"][0]["abbr"]
 
-            if role != "skpd":
+            if role == "bpkad":
                 user = req_json["user"]
                 access_token = req_json["access_token"]
 
@@ -436,11 +397,12 @@ def login_request():
                 import_frame = import_view()
                 import_frame.pack(fill="both", expand=True)
             else:
-                messagebox.showerror("Login", "login gagal")
+                messagebox.showerror("Login", "login gagal akun tidak ditemukan!")
+                
         else:
-            messagebox.showerror("Login", "login gagal")
+            messagebox.showerror("Login", "login gagal, server tidak ditemukan!")
     except:
-        messagebox.showerror("Login", "login gagal")
+        messagebox.showerror("Login", "login gagal, sistem miliki kesalahan!")
 
 
 async def send_request_file(url, filename, rows, rowscount, fieldnames):
@@ -588,12 +550,9 @@ def import_view():
         "calibri", 15)).grid(column=0, row=1, sticky=W, padx=5)
 
     username_text = "Username: " + user["username"]
-    skpd_text = "SKPD: " + skpd["name"]
 
     username_lbl = Label(frame, text=username_text)
-    username_lbl.grid(row=2, column=0, sticky=W, padx=5)
-    skpd_lbl = Label(frame, text=skpd_text)
-    skpd_lbl.grid(row=3, column=0, sticky=W, padx=5)
+    username_lbl.grid(row=2, column=0, sticky=W, padx=)
 
     Label(frame, text="", height="1").grid(column=0, row=4, sticky=W, padx=5)
 
@@ -648,7 +607,10 @@ if __name__ == "__main__":
     window.title("Espm import 1.0")
     window.geometry("700x500")
 
-    login_frame = login_view()
-    login_frame.pack(fill="both", expand=True)
+    connection = connect_to_database()
+
+    if connection:
+        login_frame = login_view()
+        login_frame.pack(fill="both", expand=True)
 
     main_loop.run_until_complete(run_tk(window))

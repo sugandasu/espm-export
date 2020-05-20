@@ -16,16 +16,29 @@ main_loop = asyncio.get_event_loop()
 load_dotenv()
 
 
+# UTIL
+
+
+def reset_file(filename):
+    if os.path.exists(filename):
+        os.remove(filename)
+        return False
+
+
+# SQL SERVER
+
+
 def connect_to_database():
     global conn
     conn = False
-    server=os.getenv('server')
-    database=os.getenv('database') 
-    username=os.getenv('username')
-    password=os.getenv('password')
+    SERVER=os.getenv('SERVER')
+    DATABASE=os.getenv('DATABASE') 
+    UID=os.getenv('UID')
+    PWD=os.getenv('PWD')
 
     try:
-        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
+        conn_str = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER='+SERVER+';DATABASE='+DATABASE+';UID='+UID+';PWD='+ PWD + ';Trusted_Connection=NO;'
+        conn = pyodbc.connect(conn_str)
         if not conn:
             messagebox.showerror("Database", "Koneksi gagal akun tidak ditemukan!")
         else:
