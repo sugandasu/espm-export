@@ -389,7 +389,7 @@ def login_request():
             req_json = req.json()
             role = req_json["user"]["roles"][0]["abbr"]
 
-            if role == "bpkad":
+            if role == "admin":
                 user = req_json["user"]
                 access_token = req_json["access_token"]
 
@@ -552,7 +552,7 @@ def import_view():
     username_text = "Username: " + user["username"]
 
     username_lbl = Label(frame, text=username_text)
-    username_lbl.grid(row=2, column=0, sticky=W, padx=)
+    username_lbl.grid(row=2, column=0, sticky=W, padx=5)
 
     Label(frame, text="", height="1").grid(column=0, row=4, sticky=W, padx=5)
 
